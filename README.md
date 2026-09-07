@@ -24,9 +24,13 @@ ResMed's **"S10"** family (AirSense 10, AirCurve 10, Lumis 10) shares one electr
 
 SWD pinout: `SWDIO = PA13`, `SWCLK = PA14`, `NRST = pin 25`.
 
+![EEPROM U202 location on the board](diagrama_01_localizacao_U202.jpg)
+
 ---
 
 ## Part 1 — Firmware (via SWD)
+
+![SWD header pinout](diagrama_02_header_SWD_pinout.jpg)
 
 1. Wire an **ST-Link V2** to the `SK200` SWD pads (SWDIO, SWCLK, GND, NRST).
 2. **Dump** the firmware over SWD.
@@ -48,6 +52,12 @@ Things worth knowing if you go in-circuit:
 - The CH341A drives its SPI lines at **5 V** while the chip runs at **3.3 V** → **1 kΩ series resistors** on CLK/CS/MOSI limit the back-feed current (a series resistor is a *current limiter*, not a voltage divider — it won't drop idle voltage on a meter).
 - **/HOLD (pin 7)** must be high for the chip to talk. With the board **powered/booted** the host holds it high; with the CPU held in reset the board can pull it low (chip frozen). So reading with the board powered and idle tends to work.
 - Make sure the programmer is in the correct **25xx SPI ("BIOS")** mode/position — a wrong mode was my original "it won't read" bug.
+
+![Series-resistor schematic for in-circuit reading](diagrama_04_esquema_resistores.jpg)
+
+![Series resistors wired on a protoboard](diagrama_05_protoboard_serie.jpg)
+
+![CH341A pin wiring](diagrama_06_CH341A_pinos.jpg)
 
 **Desoldering gives the cleanest, most reliable read** (no bus contention at all), so I still recommend it when you want certainty — and it's what I did to first decode the format below. But in-circuit is achievable.
 
@@ -109,6 +119,8 @@ After all this, the device's **clock went erratic** (seconds jumping back and fo
 It was the **32.768 kHz RTC crystal (`X202`)** — which sits *right against* the EEPROM I'd blasted with hot air. Heat near a crystal cracks/detunes it, and the RTC oscillator went unstable. The main MHz crystal (`X201`) survived (the machine boots fine); only the low-speed RTC oscillator died.
 
 **Fix:** reflow it first; if dead, replace with a 3.2×1.5 mm 12.5 pF part (Abracon ABS07 / Epson FC-135). **Lesson #1 of rework: shield delicate crystals from hot air.**
+
+![RTC crystal X202 next to the EEPROM](diagrama_07_cristal_RTC_X202.jpg)
 
 ---
 
