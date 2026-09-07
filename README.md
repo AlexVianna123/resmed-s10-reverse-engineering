@@ -45,7 +45,7 @@ SWD pinout: `SWDIO = PA13`, `SWCLK = PA14`, `NRST = pin 25`.
 
 ### 2.1 Reading it: in-circuit vs desoldered
 
-**In-circuit reading works — and in my case it needed no extra parts.** No series resistors, no level shifting. I read the M95M02 straight on the board with a CH341A + SOIC-8 clip. You get large runs of `FF` (the chip's unused space), but the part that matters — the header block with the hour meters — reads fine. (Interestingly, when you desolder the chip those `FF` runs don't show the same way; the live in-circuit read is how I first spotted the real data.)
+**In-circuit reading works — no extra components needed.** No series resistors, no level shifting. The only prep: I tied the STM32's **NRST to ground** to hold the main MCU in reset, so it lets go of the SPI bus and doesn't fight the programmer (that's what kills an in-circuit read — bus contention). Then I read the M95M02 straight on the board with a CH341A + SOIC-8 clip. You get large runs of `FF` (the chip's unused space), but the part that matters — the header block with the hour meters — reads fine. (Interestingly, when you desolder the chip those `FF` runs don't show the same way; the live in-circuit read is how I first spotted the real data.)
 
 **The one gotcha was a software-mode mistake, not wiring.** My early "IC not responding" / all-`FF` failures happened because I had the programmer set to the wrong mode — I thought it should be an **"EEPROM"** setting, when it actually needed the **25xx SPI ("BIOS" / flash) mode**. Once I switched to that, it read on the first try.
 
