@@ -45,21 +45,13 @@ SWD pinout: `SWDIO = PA13`, `SWCLK = PA14`, `NRST = pin 25`.
 
 ### 2.1 Reading it: in-circuit vs desoldered
 
-**In-circuit reading works** — I just had it misconfigured at first. My early failures (`FF` / "IC not responding") were mostly a **CH341A configuration mistake** (wrong programmer mode/position), not an inherent impossibility. Once configured correctly, reading the M95M02 **on the board** succeeded: you get large runs of `FF` (the chip's unused space), but the part that matters — the header block with the hour meters — reads fine.
+**In-circuit reading works — and in my case it needed no extra parts.** No series resistors, no level shifting. I read the M95M02 straight on the board with a CH341A + SOIC-8 clip. You get large runs of `FF` (the chip's unused space), but the part that matters — the header block with the hour meters — reads fine. (Interestingly, when you desolder the chip those `FF` runs don't show the same way; the live in-circuit read is how I first spotted the real data.)
 
-Things worth knowing if you go in-circuit:
-
-- The CH341A drives its SPI lines at **5 V** while the chip runs at **3.3 V** → **1 kΩ series resistors** on CLK/CS/MOSI limit the back-feed current (a series resistor is a *current limiter*, not a voltage divider — it won't drop idle voltage on a meter).
-- **/HOLD (pin 7)** must be high for the chip to talk. With the board **powered/booted** the host holds it high; with the CPU held in reset the board can pull it low (chip frozen). So reading with the board powered and idle tends to work.
-- Make sure the programmer is in the correct **25xx SPI ("BIOS")** mode/position — a wrong mode was my original "it won't read" bug.
-
-![Series-resistor schematic for in-circuit reading](diagrama_04_esquema_resistores.jpg)
-
-![Series resistors wired on a protoboard](diagrama_05_protoboard_serie.jpg)
+**The one gotcha was a software-mode mistake, not wiring.** My early "IC not responding" / all-`FF` failures happened because I had the programmer set to the wrong mode — I thought it should be an **"EEPROM"** setting, when it actually needed the **25xx SPI ("BIOS" / flash) mode**. Once I switched to that, it read on the first try.
 
 ![CH341A pin wiring](diagrama_06_CH341A_pinos.jpg)
 
-**Desoldering gives the cleanest, most reliable read** (no bus contention at all), so I still recommend it when you want certainty — and it's what I did to first decode the format below. But in-circuit is achievable.
+**Desoldering** is still the most bulletproof (zero bus contention) and it's what I used to first fully decode the format below — but you don't have to desolder just to read it.
 
 ### 2.2 Desoldering
 
@@ -131,7 +123,7 @@ It was the **32.768 kHz RTC crystal (`X202`)** — which sits *right against* th
 2. Recompute CRC-16/CCITT-FALSE over `0x00–0x4F`.
 3. Write LE at `0x50`; flash the image.
 
-**Tools:** ST-Link V2 (SWD), CH341A + SOIC-8 clip / SOP-8 socket, NeoProgrammer, hot-air + iron, flux, 1 kΩ resistors, multimeter.
+**Tools:** ST-Link V2 (SWD), CH341A + SOIC-8 clip / SOP-8 socket, NeoProgrammer, hot-air + iron, flux, multimeter.
 
 ---
 
